@@ -1,0 +1,40 @@
+services:
+  mysql:
+    image: 'mysql:8.0.31'
+    privileged: true
+    volumes:
+      - ./data/:/var/lib/mysql
+      - ./conf.d:/etc/mysql/conf.d
+      - ./my.cnf:/etc/mysql/my.cnf
+    command:
+      - '--character-set-server=utf8mb4'
+      - '--collation-server=utf8mb4_unicode_ci'
+      - '--binlog_expire_logs_seconds=259200'
+      - '--default-authentication-plugin=mysql_native_password'
+      # --- 4G+ 服务器稳定性配置 ---
+      - '--innodb_buffer_pool_size=512M'           # InnoDB 缓冲池，降低查询过程中磁盘抖动
+      - '--innodb_log_file_size=64M'               # 日志文件大小
+      - '--innodb_log_buffer_size=16M'             # 日志缓冲区大小
+      - '--max_connections=100'                    # 最大连接数
+      - '--table_open_cache=256'                   # 表缓存
+      - '--performance_schema=OFF'                 # 关闭性能监控 (节省内存)
+      - '--innodb_flush_log_at_trx_commit=2'       # 日志刷新策略 (提升性能,略降安全性)
+      - '--innodb_flush_method=O_DIRECT'           # 绕过操作系统缓存
+      - '--max_allowed_packet=64M'                 # 避免较大查询/写入包导致连接断开
+      - '--wait_timeout=28800'                     # 降低空闲连接被过早关闭概率
+      - '--interactive_timeout=28800'              # 降低交互连接被过早关闭概率
+      - '--net_read_timeout=120'                   # 查询过程中网络读取超时
+      - '--net_write_timeout=120'                  # 查询过程中网络写入超时
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -uroot -p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+    ports:
+      - "${MYSQL_PORT}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: admin123
+      LANG: C.UTF-8
+      TZ: "Asia/Shanghai"
+    mem_limit: 1g
