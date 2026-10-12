@@ -1,6 +1,7 @@
 services:
   mysql8:
     image: 'mysql:8.0.31'
+    container_name: mysql8
     restart: always
     networks:
       - docker-kit-network
