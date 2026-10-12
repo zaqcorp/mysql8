@@ -1,9 +1,12 @@
 services:
-  mysql:
+  mysql8:
     image: 'mysql:8.0.31'
+    restart: always
+    networks:
+      - docker-kit-network
     privileged: true
     volumes:
-      - ./data/:/var/lib/mysql
+      - mysql8_data:/var/lib/mysql
       - ./conf.d:/etc/mysql/conf.d
       - ./my.cnf:/etc/mysql/my.cnf
     command:
@@ -38,3 +41,11 @@ services:
       LANG: C.UTF-8
       TZ: "Asia/Shanghai"
     mem_limit: 1g
+
+volumes:
+  mysql8_data:
+    external: true
+
+networks:
+  docker-kit-network:
+    external: true
